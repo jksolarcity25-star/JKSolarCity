@@ -22,3 +22,12 @@ node_modules/
 # Build outputs (if added later)
 dist/
 build/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.venv/

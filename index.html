@@ -940,6 +940,22 @@
   .calc h3{color:#fff; font-size:23px; margin-bottom:6px; position:relative; z-index:1;}
   .calc-sub{color:var(--on-navy-soft); font-size:14px; margin-bottom:26px; position:relative; z-index:1;}
   .field-group{margin-bottom:20px; position:relative; z-index:1;}
+
+  .calc-results-wrapper{
+    display:flex; gap:20px; margin-top:28px; position:relative; z-index:1;
+  }
+  .calc-result{
+    flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14);
+    border-radius:12px; padding:22px;
+    position:relative; overflow:hidden;
+  }
+  .calc-savings-highlight{
+    flex:0 0 auto; width:200px; margin-top:0;
+  }
+  @media (max-width: 768px){
+    .calc-results-wrapper{flex-direction:column;}
+    .calc-savings-highlight{width:100%; margin-top:16px;}
+  }
   .field-group label{display:block; font-size:12.5px; font-weight:600; color:var(--gold-2); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:9px;}
   .label-highlight{
     display:inline-block;
@@ -1028,7 +1044,7 @@
   .toggle-row input:focus-visible + .toggle-track{outline:2px solid var(--gold); outline-offset:2px;}
   .toggle-label{font-size:14px; color:var(--on-navy); font-weight:500;}
   .calc-result{
-    margin-top:28px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14);
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14);
     border-radius:12px; padding:22px;
     position:relative; overflow:hidden;
   }
@@ -1047,6 +1063,40 @@
   .calc-result-row .val.gold{color:var(--gold-2); text-shadow:0 0 10px rgba(255,206,122,0.3);}
   .calc-disclaimer{font-size:11.5px; color:var(--on-navy-soft); margin-top:14px; line-height:1.5;}
   .calc-cta{margin-top:20px; width:100%; justify-content:center;}
+  .units-hint{font-size:11.5px; color:var(--gold-2); margin-top:8px; font-weight:500; opacity:0.85; transition:opacity .2s ease;}
+  .units-hint:hover{opacity:1;}
+
+  .calc-savings-highlight{
+    background:linear-gradient(135deg, rgba(240,169,60,0.12) 0%, rgba(240,169,60,0.06) 100%);
+    border:2px solid rgba(240,169,60,0.3); border-radius:12px; padding:18px;
+    position:relative; overflow:hidden;
+  }
+  .calc-savings-highlight::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg, var(--gold), var(--rust));
+  }
+  .savings-highlight-title{
+    font-family:"Big Shoulders Display",sans-serif; font-size:15px; font-weight:700;
+    color:var(--gold-2); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .savings-highlight-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:8px 0; border-bottom:1px solid rgba(240,169,60,0.15);
+  }
+  .savings-highlight-row:last-child{border-bottom:none;}
+  .savings-highlight-row .savings-lbl{
+    font-size:13px; color:var(--on-navy-soft); font-weight:500;
+  }
+  .savings-highlight-row .savings-val{
+    font-family:"Big Shoulders Display",sans-serif; font-size:20px; font-weight:700;
+    color:#fff; transition:all .2s ease;
+  }
+  .savings-highlight-row .savings-val.gold{
+    color:var(--gold-2); text-shadow:0 0 12px rgba(255,206,122,0.4);
+  }
+  .savings-highlight-row:hover .savings-val{
+    transform:scale(1.06);
+  }
 
   /* ---------- WHY US ---------- */
   .compare-wrap{margin-top:44px; overflow-x:auto; position:relative;}
@@ -1478,6 +1528,7 @@
     font-size:10px;
   }
 </style>
+<script src="tneb_calculator.js"></script>
 </head>
 <body>
 
@@ -1738,40 +1789,36 @@
             <label>Property type</label>
             <div class="seg" id="propSeg">
               <button type="button" data-type="home" class="active">🏠 Home</button>
-              <button type="button" data-type="apartment">🏢 Apartment</button>
-              <button type="button" data-type="business">💼 Business</button>
+              <button type="button" data-type="commercial">💼 Commercials</button>
             </div>
           </div>
 
           <div class="field-group">
             <label for="billNumber">Current average <span class="label-highlight">Bi-Monthly</span> EB bill</label>
             <div class="bill-input-row">
-              <input type="range" id="billRange" min="500" max="20000" step="100" value="3000">
+              <input type="range" id="billRange" min="1000" max="100000" step="500" value="6000">
               <div class="bill-value-input">
                 <span>₹</span>
-                <input type="number" id="billNumber" min="0" max="50000" step="100" value="3000" inputmode="numeric">
+                <input type="number" id="billNumber" min="1000" max="100000" step="100" value="6000" inputmode="numeric">
               </div>
             </div>
+            <div class="units-hint" id="unitsHint">Based on this bill: - units</div>
           </div>
 
-          <div class="field-group">
-            <label for="roofArea">Roof area you can spare (sq ft) <span class="optional-tag">optional</span></label>
-            <div class="bill-input-row">
-              <input type="range" id="roofRange" min="0" max="3000" step="50" value="0">
-              <div class="bill-value-input">
-                <input type="number" id="roofNumber" min="0" max="10000" step="10" value="0" inputmode="numeric" placeholder="0">
-                <span>sq ft</span>
-              </div>
+          <div class="calc-results-wrapper">
+            <div class="calc-result">
+              <div class="calc-result-row"><span class="lbl">Suggested system size</span><span class="val" id="resSize">3 to 4 kW</span></div>
+              <div class="calc-result-row"><span class="lbl">Potential new bi-monthly bill</span><span class="val" id="resNewBill">₹240/bi-mo</span></div>
+              <div class="calc-result-row"><span class="lbl">Estimated bi-monthly savings</span><span class="val gold" id="resSavings">₹2,760/bi-mo</span></div>
+              <div class="calc-result-row"><span class="lbl">Estimated yearly savings</span><span class="val gold" id="resYearly">₹33,120/yr</span></div>
+              <div class="calc-result-row"><span class="lbl">Government subsidy</span><span class="val gold" id="resSubsidy">Up to ₹1,00,000</span></div>
+              <div class="calc-result-row"><span class="lbl">ROI Duration</span><span class="val" id="resROI">-</span></div>
             </div>
-          </div>
-
-          <div class="calc-result">
-            <div class="calc-result-row"><span class="lbl">Suggested system size</span><span class="val" id="resSize">3 to 4 kW</span></div>
-            <div class="calc-result-row"><span class="lbl">Potential new monthly bill</span><span class="val" id="resNewBill">₹240/mo</span></div>
-            <div class="calc-result-row"><span class="lbl">Estimated monthly savings</span><span class="val gold" id="resSavings">₹2,760/mo</span></div>
-            <div class="calc-result-row"><span class="lbl">Estimated yearly savings</span><span class="val gold" id="resYearly">₹33,120/yr</span></div>
-            <div class="calc-result-row"><span class="lbl">Government subsidy</span><span class="val gold" id="resSubsidy">Up to ₹1,00,000</span></div>
-            <div class="calc-result-row" id="resRoofRow" style="display:none;"><span class="lbl">Roof-space check</span><span class="val" id="resRoof">fits comfortably</span></div>
+            <div class="calc-savings-highlight">
+              <div class="savings-highlight-title">Long-term savings</div>
+              <div class="savings-highlight-row"><span class="savings-lbl">In 10 years</span><span class="savings-val gold" id="resSavings10">-</span></div>
+              <div class="savings-highlight-row"><span class="savings-lbl">In 15 years</span><span class="savings-val gold" id="resSavings15">-</span></div>
+            </div>
           </div>
           <a href="#contact" class="btn btn-gold calc-cta">Get my exact figures - book an assessment</a>
         </div>
@@ -2394,37 +2441,51 @@
   var segButtons = document.querySelectorAll('#propSeg button');
   var billRange = document.getElementById('billRange');
   var billNumber = document.getElementById('billNumber');
-  var roofRange = document.getElementById('roofRange');
-  var roofNumber = document.getElementById('roofNumber');
+  var unitsHint = document.getElementById('unitsHint');
   var resSize = document.getElementById('resSize');
+  var resSubsidy = document.getElementById('resSubsidy');
   var resNewBill = document.getElementById('resNewBill');
+  var resROI = document.getElementById('resROI');
+  var resSavings10 = document.getElementById('resSavings10');
+  var resSavings15 = document.getElementById('resSavings15');
   var resSavings = document.getElementById('resSavings');
   var resYearly = document.getElementById('resYearly');
   var resSubsidy = document.getElementById('resSubsidy');
-  var resRoofRow = document.getElementById('resRoofRow');
-  var resRoof = document.getElementById('resRoof');
   var resBatteryRow = document.getElementById('resBatteryRow');
 
   function fmt(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
 
-  function sizeRangeFor(type, bill){
-    if(type === 'home'){
-      if(bill < 1800) return [1,2];
-      if(bill < 4000) return [3,4];
-      return [5,6];
-    }
-    if(type === 'apartment') return [20,100];
-    return [2,100];
+  function fmtLakhs(n){
+    var lakhs = n / 100000;
+    var formatted = lakhs.toFixed(2);
+    var suffix = lakhs === 1 ? 'lakh' : 'lakhs';
+    return formatted + ' ' + suffix;
   }
 
-  function subsidyFor(type){
-    if(type === 'home') return 'Up to ₹1,00,000';
-    return 'Ask us - schemes vary';
+  function sizeRangeFor(type, bill){
+    // Calculate actual kW based on TNEB units
+    var isHome = (type === 'home');
+    var units = getTNEBUnits(bill, isHome);
+    
+    // Calculate daily units (2-month = 60 days)
+    var dailyUnits = units / 60;
+    
+    // Calculate kW needed (4 units per day per kW)
+    var kwNeeded = dailyUnits / 4;
+    
+    // Round up to next integer
+    var kW = Math.ceil(kwNeeded);
+    
+    // Store kW for subsidy calculation
+    window.currentKW = kW;
+    
+    // Show single kW value for both home and commercial
+    return [kW, kW];
   }
 
   function pulseResults(){
     if(reduceMotion) return;
-    var resultValues = document.querySelectorAll('.calc-result-row .val');
+    var resultValues = document.querySelectorAll('.calc-result-row .val, .savings-highlight-row .savings-val');
     resultValues.forEach(function(v){
       v.classList.remove('pulse');
       void v.offsetWidth;
@@ -2438,36 +2499,106 @@
     if(document.activeElement !== billNumber){
       billNumber.value = bill;
     }
-    var roof = parseInt(roofRange.value, 10) || 0;
-    // Only update roofNumber if it's not currently being edited
-    if(document.activeElement !== roofNumber){
-      roofNumber.value = roof;
+
+    // Don't calculate if bill is below ₹1,000
+    if(bill < 1000){
+      resSize.textContent = '-';
+      resNewBill.textContent = '-';
+      resSavings.textContent = '-';
+      resYearly.textContent = '-';
+      resSubsidy.textContent = '-';
+      resROI.textContent = '-';
+      resSavings10.textContent = '-';
+      resSavings15.textContent = '-';
+      unitsHint.textContent = 'Minimum bill: ₹1,000';
+      return;
     }
 
-    var savingsRate = 0.92;
-    var savings = bill * savingsRate;
-    var newBill = bill - savings;
     var range = sizeRangeFor(propType, bill);
-    resSize.textContent = range[0] + ' to ' + range[1] + ' kW';
-    resNewBill.textContent = fmt(newBill) + '/mo';
-    resSavings.textContent = fmt(savings) + '/mo';
-    resYearly.textContent = fmt(savings * 12) + '/yr';
-    resSubsidy.textContent = subsidyFor(propType);
-
-    // roof-space check: ~100 sq ft per kW, rough rule of thumb
-    if(roof > 0){
-      resRoofRow.style.display = 'flex';
-      var roofCapableKw = Math.floor(roof / 100);
-      if(roofCapableKw >= range[1]){
-        resRoof.textContent = 'Fits comfortably (~' + roofCapableKw + ' kW space)';
-      } else if(roofCapableKw >= range[0]){
-        resRoof.textContent = '~' + roofCapableKw + ' kW likely fits';
-      } else {
-        resRoof.textContent = 'Tight - closer to ' + Math.max(roofCapableKw,1) + ' kW, ask us';
-      }
+    var kW = range[0]; // Get the calculated kW
+    
+    // Display as single kW for both home and commercial
+    resSize.textContent = kW + ' kW';
+    
+    // Fixed new bi-monthly bill: ₹350
+    var newBiMonthlyBill = 350;
+    resNewBill.textContent = fmt(newBiMonthlyBill) + '/bi-mo';
+    
+    // Bi-monthly savings: current bill - ₹350
+    var biMonthlySavings = bill - newBiMonthlyBill;
+    resSavings.textContent = fmt(biMonthlySavings) + '/bi-mo';
+    
+    // Yearly savings: bi-monthly savings × 6
+    var yearlySavings = biMonthlySavings * 6;
+    resYearly.textContent = fmt(yearlySavings) + '/yr';
+    
+    // Government subsidy based on kW and property type
+    var subsidy;
+    if(propType === 'commercial'){
+      subsidy = 0; // No subsidy for commercial
+      resSubsidy.textContent = 'Not applicable';
+      resSubsidy.classList.remove('gold'); // Remove gold styling
     } else {
-      resRoofRow.style.display = 'none';
+      // Home subsidy based on kW
+      if(window.currentKW === 1){
+        subsidy = 35000;
+      } else if(window.currentKW === 2){
+        subsidy = 70000;
+      } else {
+        subsidy = 100000; // Max for 3+ kW
+      }
+      resSubsidy.textContent = 'Up to ' + fmt(subsidy);
+      resSubsidy.classList.add('gold'); // Add gold styling
     }
+
+    // Calculate ROI Duration
+    // Formula: ((kW × 70,000) - subsidy) / (bi-monthly savings / 2)
+    var investment = window.currentKW * 70000;
+    var netExpense = investment - subsidy; // Subtract subsidy (actual customer expense)
+    var monthlySavings = biMonthlySavings / 2;
+    var roiMonths = netExpense / monthlySavings;
+    
+    // Round up to next integer
+    roiMonths = Math.ceil(roiMonths);
+    
+    // Convert to years and months
+    var roiYears = Math.floor(roiMonths / 12);
+    var roiRemainingMonths = roiMonths % 12;
+    
+    // Format as "X years Y months (Approx)"
+    var roiText;
+    if(roiYears === 0){
+      roiText = roiRemainingMonths + ' months (Approx)';
+    } else if(roiRemainingMonths === 0){
+      roiText = roiYears + ' year' + (roiYears > 1 ? 's' : '') + ' (Approx)';
+    } else {
+      roiText = roiYears + ' year' + (roiYears > 1 ? 's' : '') + ' ' + roiRemainingMonths + ' months (Approx)';
+    }
+    resROI.textContent = roiText;
+
+    // Calculate Savings in 10 years
+    // Subtract ROI duration from 10 years, then multiply by yearly savings
+    var roiYearsTotal = roiMonths / 12; // ROI in years (decimal)
+    var yearsAfterROI10 = 10 - roiYearsTotal;
+    var savings10 = 0;
+    if(yearsAfterROI10 > 0){
+      savings10 = yearsAfterROI10 * yearlySavings;
+    }
+    resSavings10.textContent = fmtLakhs(Math.round(savings10));
+
+    // Calculate Savings in 15 years
+    // Subtract ROI duration from 15 years, then multiply by yearly savings
+    var yearsAfterROI15 = 15 - roiYearsTotal;
+    var savings15 = 0;
+    if(yearsAfterROI15 > 0){
+      savings15 = yearsAfterROI15 * yearlySavings;
+    }
+    resSavings15.textContent = fmtLakhs(Math.round(savings15));
+
+    // Calculate TNEB units based on property type
+    var isHome = (propType === 'home');
+    var units = getTNEBUnits(bill, isHome);
+    unitsHint.textContent = 'Based on this bill: ' + units + ' units';
   }
 
   segButtons.forEach(function(btn){
@@ -2479,49 +2610,43 @@
       pulseResults();
     });
   });
+  
+  // Initialize subsidy styling (home has gold class by default)
+  resSubsidy.classList.add('gold');
   billRange.addEventListener('input', recalc);
   billNumber.addEventListener('input', function(){
     var v = parseInt(billNumber.value, 10);
     if(isNaN(v)) return;
-    billRange.value = Math.min(v, 20000);
+    if(v < 1000) v = 1000;
+    billRange.value = Math.min(v, 100000);
     recalc();
   });
   billNumber.addEventListener('blur', function(){
     var v = parseInt(billNumber.value, 10);
-    if(isNaN(v) || v < 500){
-      v = 500;
+    if(isNaN(v) || v < 1000){
+      v = 1000;
       billNumber.value = v;
     }
-    v = Math.min(v, 50000);
-    billRange.value = Math.min(v, 20000);
-    recalc();
-  });
-  roofRange.addEventListener('input', recalc);
-  roofNumber.addEventListener('input', function(){
-    var v = parseInt(roofNumber.value, 10);
-    if(isNaN(v)) v = 0;
-    roofRange.value = Math.min(v, 3000);
-    recalc();
-  });
-  roofNumber.addEventListener('blur', function(){
-    var v = parseInt(roofNumber.value, 10);
-    if(isNaN(v)) v = 0;
-    v = Math.max(0, Math.min(10000, v));
-    roofRange.value = Math.min(v, 3000);
+    v = Math.min(v, 100000);
+    billRange.value = Math.min(v, 100000);
     recalc();
   });
   recalc();
 
   // slider drag glow
-  [billRange, roofRange].forEach(function(range){
-    var wrap = range.closest('.bill-input-row');
-    if(!wrap) return;
-    var start = function(){ wrap.classList.add('dragging'); };
-    var end = function(){ wrap.classList.remove('dragging'); pulseResults(); };
-    range.addEventListener('mousedown', start);
-    range.addEventListener('touchstart', start, {passive:true});
-    window.addEventListener('mouseup', end);
-    window.addEventListener('touchend', end);
+  billRange.addEventListener('mousedown', function(){
+    this.closest('.bill-input-row').classList.add('dragging');
+  });
+  billRange.addEventListener('touchstart', function(){
+    this.closest('.bill-input-row').classList.add('dragging');
+  }, {passive:true});
+  window.addEventListener('mouseup', function(){
+    document.querySelector('.bill-input-row.dragging')?.classList.remove('dragging');
+    pulseResults();
+  });
+  window.addEventListener('touchend', function(){
+    document.querySelector('.bill-input-row.dragging')?.classList.remove('dragging');
+    pulseResults();
   });
 
   // callback form -> Google Apps Script
